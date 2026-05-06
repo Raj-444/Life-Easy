@@ -30,6 +30,7 @@ class ReminderReceiver : BroadcastReceiver() {
         const val EXTRA_EVENT_ID = "extra_event_id"
         const val EXTRA_EVENT_TITLE = "extra_event_title"
         const val EXTRA_EVENT_DESCRIPTION = "extra_event_description"
+        const val EXTRA_REMINDER_TYPE = "extra_reminder_type"
 
         const val ACTION_DONE = "com.example.lifeeasy.ACTION_DONE"
         const val ACTION_SNOOZE = "com.example.lifeeasy.ACTION_SNOOZE"
@@ -58,10 +59,12 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notificationHelper = NotificationHelper(context)
         
+        val isAlarm = intent.getStringExtra(EXTRA_REMINDER_TYPE) == "alarm"
+
         if (taskId != null) {
             notificationHelper.showTaskReminderNotification(taskId, title, description)
         } else if (eventId != null) {
-            notificationHelper.showEventReminderNotification(eventId, title, description)
+            notificationHelper.showEventReminderNotification(eventId, title, description, isAlarm)
         }
     }
 

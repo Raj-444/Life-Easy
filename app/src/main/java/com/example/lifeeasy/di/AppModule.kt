@@ -52,6 +52,9 @@ object AppModule {
     @Provides fun provideNoteDao(db: AppDatabase): com.example.lifeeasy.data.local.dao.NoteDao = db.noteDao()
     @Provides fun provideHealthDao(db: AppDatabase): com.example.lifeeasy.data.local.dao.HealthDao = db.healthDao()
     @Provides fun provideRoadmapDao(db: AppDatabase): com.example.lifeeasy.data.local.dao.RoadmapDao = db.roadmapDao()
+    @Provides fun provideRoutineDao(db: AppDatabase): com.example.lifeeasy.data.local.dao.RoutineDao = db.routineDao()
+    @Provides fun provideGpaDao(db: AppDatabase): com.example.lifeeasy.data.local.dao.GpaDao = db.gpaDao()
+    @Provides fun provideExpenseDao(db: AppDatabase): com.example.lifeeasy.data.local.dao.ExpenseDao = db.expenseDao()
 
     // ── Firebase Providers ─────────────────────────────
 

@@ -26,8 +26,14 @@ import com.example.lifeeasy.data.local.entity.TransactionEntity
 import com.example.lifeeasy.data.local.entity.PomodoroEntity
 import com.example.lifeeasy.data.local.entity.NoteEntity
 import com.example.lifeeasy.data.local.entity.HealthEntity
-import com.example.lifeeasy.data.local.entity.RoadmapEntity
 import com.example.lifeeasy.data.local.dao.RoadmapDao
+import com.example.lifeeasy.data.local.dao.RoutineDao
+import com.example.lifeeasy.data.local.dao.GpaDao
+import com.example.lifeeasy.data.local.dao.ExpenseDao
+import com.example.lifeeasy.data.local.entity.RoutineEntity
+import com.example.lifeeasy.data.local.entity.GpaResultEntity
+import com.example.lifeeasy.data.local.entity.ExpenseEntity
+import com.example.lifeeasy.data.local.entity.RoadmapItemEntity
 
 @Database(
     entities = [
@@ -44,7 +50,11 @@ import com.example.lifeeasy.data.local.dao.RoadmapDao
         PomodoroEntity::class,
         NoteEntity::class,
         HealthEntity::class,
-        RoadmapEntity::class
+        RoadmapEntity::class,
+        RoutineEntity::class,
+        GpaResultEntity::class,
+        ExpenseEntity::class,
+        RoadmapItemEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -64,4 +74,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun healthDao(): HealthDao
     abstract fun roadmapDao(): RoadmapDao
+    abstract fun routineDao(): RoutineDao
+    abstract fun gpaDao(): GpaDao
+    abstract fun expenseDao(): ExpenseDao
 }

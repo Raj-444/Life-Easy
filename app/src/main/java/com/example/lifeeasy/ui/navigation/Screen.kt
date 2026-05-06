@@ -24,5 +24,7 @@ sealed class Screen(val route: String) {
     object Clock : Screen("clock")
     object About : Screen("about")
     object Roadmap : Screen("roadmap")
+    object Gpa : Screen("gpa")
+    object Routine : Screen("routine")
 }
 

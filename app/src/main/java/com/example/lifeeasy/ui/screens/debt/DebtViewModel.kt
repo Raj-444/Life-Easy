@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.lifeeasy.domain.model.DebtTransaction
 import com.example.lifeeasy.domain.model.Person
 import com.example.lifeeasy.domain.repository.DebtRepository
+import com.example.lifeeasy.domain.repository.ExpenseRepository
+import com.example.lifeeasy.data.local.entity.ExpenseEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -15,18 +17,23 @@ import javax.inject.Inject
 data class DebtUiState(
     val showAddPersonDialog: Boolean = false,
     val showAddTransactionDialog: Boolean = false,
+    val showAddExpenseDialog: Boolean = false,
     val selectedPersonId: String? = null
 )
 
 @HiltViewModel
 class DebtViewModel @Inject constructor(
-    private val repository: DebtRepository
+    private val repository: DebtRepository,
+    private val expenseRepository: ExpenseRepository
 ) : ViewModel() {
 
     val persons: StateFlow<List<Person>> = repository.getAllPersons()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val allTransactions: StateFlow<List<DebtTransaction>> = repository.getAllTransactions()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val standaloneExpenses: StateFlow<List<ExpenseEntity>> = expenseRepository.getAllExpenses()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     // Instead of querying all transactions dynamically, let's keep it simple.
@@ -61,6 +68,14 @@ class DebtViewModel @Inject constructor(
         _uiState.update { it.copy(showAddTransactionDialog = false) }
     }
 
+    fun showAddExpenseDialog() {
+        _uiState.update { it.copy(showAddExpenseDialog = true) }
+    }
+
+    fun dismissAddExpenseDialog() {
+        _uiState.update { it.copy(showAddExpenseDialog = false) }
+    }
+
     fun selectPerson(personId: String?) {
         _uiState.update { it.copy(selectedPersonId = personId) }
     }
@@ -93,6 +108,24 @@ class DebtViewModel @Inject constructor(
             )
             repository.saveTransaction(transaction)
             dismissAddTransactionDialog()
+        }
+    }
+
+    fun addStandaloneExpense(title: String, amount: Double, isBorrow: Boolean) {
+        viewModelScope.launch {
+            val expense = ExpenseEntity(
+                title = title,
+                amount = amount,
+                isBorrow = isBorrow
+            )
+            expenseRepository.addExpense(expense)
+            dismissAddExpenseDialog()
+        }
+    }
+
+    fun deleteStandaloneExpense(expense: ExpenseEntity) {
+        viewModelScope.launch {
+            expenseRepository.deleteExpense(expense)
         }
     }
 

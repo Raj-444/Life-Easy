@@ -20,6 +20,8 @@ class NotificationHelper(private val context: Context) {
         const val TASK_CHANNEL_NAME = "Task Reminders"
         const val EVENT_CHANNEL_ID = "event_reminders"
         const val EVENT_CHANNEL_NAME = "Event Reminders"
+        const val ALARM_CHANNEL_ID = "event_alarms"
+        const val ALARM_CHANNEL_NAME = "Event Alarms (Loud)"
     }
 
     private val notificationManager =
@@ -46,8 +48,18 @@ class NotificationHelper(private val context: Context) {
             ).apply {
                 description = "Reminders for academic events (exams, labs, etc.)"
             }
+
+            val alarmChannel = NotificationChannel(
+                ALARM_CHANNEL_ID,
+                ALARM_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Loud alarms for critical events"
+                setSound(android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI, null)
+                enableVibration(true)
+            }
             
-            notificationManager.createNotificationChannels(listOf(taskChannel, eventChannel))
+            notificationManager.createNotificationChannels(listOf(taskChannel, eventChannel, alarmChannel))
         }
     }
 
@@ -97,7 +109,7 @@ class NotificationHelper(private val context: Context) {
         notificationManager.notify(taskId.hashCode(), notification)
     }
 
-    fun showEventReminderNotification(eventId: String, title: String, description: String) {
+    fun showEventReminderNotification(eventId: String, title: String, description: String, isAlarm: Boolean = false) {
         val openIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -108,17 +120,24 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, EVENT_CHANNEL_ID)
+        val channelId = if (isAlarm) ALARM_CHANNEL_ID else EVENT_CHANNEL_ID
+        
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(description.ifBlank { "Academic event reminder" })
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setCategory(NotificationCompat.CATEGORY_EVENT)
-            .build()
+            .setCategory(if (isAlarm) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_EVENT)
 
-        notificationManager.notify(eventId.hashCode(), notification)
+        if (isAlarm) {
+            builder.setFullScreenIntent(pendingIntent, true)
+                .setOngoing(true)
+                .setSound(android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI)
+        }
+
+        notificationManager.notify(eventId.hashCode(), builder.build())
     }
 
     fun cancelNotification(id: Int) {

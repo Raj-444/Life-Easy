@@ -15,6 +15,7 @@ data class EventEntity(
     val endTime: Long? = null,
     val location: String = "",
     val reminderMinutes: Int = 15,
+    val reminderType: String = "notification",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncStatus: SyncStatus = SyncStatus.PENDING

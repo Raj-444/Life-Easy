@@ -23,4 +23,22 @@ class RoadmapRepository @Inject constructor(
     suspend fun deleteGoal(goal: RoadmapEntity) {
         roadmapDao.deleteGoal(goal)
     }
+
+    // ── Roadmap Items (Child Sub-tasks) ─────────────────
+
+    fun getItemsForGoal(goalId: String): Flow<List<com.example.lifeeasy.data.local.entity.RoadmapItemEntity>> {
+        return roadmapDao.getItemsForGoal(goalId)
+    }
+
+    suspend fun addItem(item: com.example.lifeeasy.data.local.entity.RoadmapItemEntity) {
+        roadmapDao.insertItem(item)
+    }
+
+    suspend fun updateItem(item: com.example.lifeeasy.data.local.entity.RoadmapItemEntity) {
+        roadmapDao.updateItem(item)
+    }
+
+    suspend fun deleteItem(item: com.example.lifeeasy.data.local.entity.RoadmapItemEntity) {
+        roadmapDao.deleteItem(item)
+    }
 }

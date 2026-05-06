@@ -8,6 +8,9 @@ import com.example.lifeeasy.data.repository.SubjectRepositoryImpl
 import com.example.lifeeasy.data.repository.TaskRepositoryImpl
 import com.example.lifeeasy.data.repository.TransactionRepositoryImpl
 import com.example.lifeeasy.data.repository.UserRepositoryImpl
+import com.example.lifeeasy.data.repository.RoutineRepositoryImpl
+import com.example.lifeeasy.data.repository.GpaRepositoryImpl
+import com.example.lifeeasy.data.repository.ExpenseRepositoryImpl
 import com.example.lifeeasy.domain.repository.AttendanceRepository
 import com.example.lifeeasy.domain.repository.AuthRepository
 import com.example.lifeeasy.domain.repository.CounterRepository
@@ -16,6 +19,9 @@ import com.example.lifeeasy.domain.repository.SubjectRepository
 import com.example.lifeeasy.domain.repository.TaskRepository
 import com.example.lifeeasy.domain.repository.TransactionRepository
 import com.example.lifeeasy.domain.repository.UserRepository
+import com.example.lifeeasy.domain.repository.RoutineRepository
+import com.example.lifeeasy.domain.repository.GpaRepository
+import com.example.lifeeasy.domain.repository.ExpenseRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -79,4 +85,28 @@ abstract class RepositoryModule {
     abstract fun bindHealthRepository(
         healthRepositoryImpl: com.example.lifeeasy.data.repository.HealthRepositoryImpl
     ): com.example.lifeeasy.domain.repository.HealthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRoadmapRepository(
+        roadmapRepositoryImpl: com.example.lifeeasy.data.repository.RoadmapRepositoryImpl
+    ): com.example.lifeeasy.domain.repository.RoadmapRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRoutineRepository(
+        routineRepositoryImpl: RoutineRepositoryImpl
+    ): RoutineRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGpaRepository(
+        gpaRepositoryImpl: GpaRepositoryImpl
+    ): GpaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindExpenseRepository(
+        expenseRepositoryImpl: ExpenseRepositoryImpl
+    ): ExpenseRepository
 }

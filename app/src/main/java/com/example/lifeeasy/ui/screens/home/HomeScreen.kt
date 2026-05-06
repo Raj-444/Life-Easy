@@ -60,7 +60,9 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToClock: () -> Unit = {},
-    onNavigateToRoadmap: () -> Unit = {}
+    onNavigateToRoadmap: () -> Unit = {},
+    onNavigateToGpa: () -> Unit = {},
+    onNavigateToRoutine: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val spacing = MaterialTheme.spacing
@@ -182,7 +184,9 @@ fun HomeScreen(
                         onNavigateToNotes = onNavigateToNotes,
                         onNavigateToHealth = onNavigateToHealth,
                         onNavigateToClock = onNavigateToClock,
-                        onNavigateToRoadmap = onNavigateToRoadmap
+                        onNavigateToRoadmap = onNavigateToRoadmap,
+                        onNavigateToGpa = onNavigateToGpa,
+                        onNavigateToRoutine = onNavigateToRoutine
                     )
                 }
             }
@@ -669,7 +673,9 @@ fun FeatureGrid(
     onNavigateToNotes: () -> Unit,
     onNavigateToHealth: () -> Unit,
     onNavigateToClock: () -> Unit,
-    onNavigateToRoadmap: () -> Unit
+    onNavigateToRoadmap: () -> Unit,
+    onNavigateToGpa: () -> Unit,
+    onNavigateToRoutine: () -> Unit
 ) {
     val features = listOf(
         FeatureItem("Tasks", Icons.AutoMirrored.Filled.List, Color(0xFF6C63FF), onNavigateToTask),
@@ -681,7 +687,9 @@ fun FeatureGrid(
         FeatureItem("Notes", Icons.Default.NoteAlt, Color(0xFF9C27B0), onNavigateToNotes),
         FeatureItem("Health", Icons.Default.FavoriteBorder, Color(0xFFF44336), onNavigateToHealth),
         FeatureItem("Clock", Icons.Default.AccessTime, Color(0xFF607D8B), onNavigateToClock),
-        FeatureItem("Roadmap", Icons.Default.Map, Color(0xFFFFC107), onNavigateToRoadmap)
+        FeatureItem("Roadmap", Icons.Default.Map, Color(0xFFFFC107), onNavigateToRoadmap),
+        FeatureItem("GPA", Icons.Default.Calculate, Color(0xFF3F51B5), onNavigateToGpa),
+        FeatureItem("Routine", Icons.Default.ViewAgenda, Color(0xFF9E9E9E), onNavigateToRoutine)
     )
 
     val spacing = MaterialTheme.spacing

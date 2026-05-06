@@ -10,6 +10,7 @@ data class Event(
     val endTime: Long? = null,
     val location: String = "",
     val reminderMinutes: Int = 15,
+    val reminderType: String = "notification", // "notification" or "alarm"
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )

@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import com.example.lifeeasy.ui.components.AuthBackground
 import com.example.lifeeasy.ui.components.GlassCard
 import com.example.lifeeasy.ui.theme.Primary
+import com.example.lifeeasy.data.local.entity.RoadmapEntity
+import com.example.lifeeasy.data.local.entity.RoadmapItemEntity
 
 data class RoadmapGoal(
     val id: String,
@@ -35,7 +37,11 @@ fun RoadmapScreen(
     onNavigateBack: () -> Unit
 ) {
     val goals by viewModel.goals.collectAsState()
+    val goalItems by viewModel.goalItems.collectAsState()
+    val selectedGoalId by viewModel.selectedGoalId.collectAsState()
     var newCheckpoint by remember { mutableStateOf("") }
+    val sheetState = rememberModalBottomSheetState()
+    var showSheet by remember { mutableStateOf(false) }
     
     val progress = if (goals.isEmpty()) 0f else goals.count { it.isCompleted }.toFloat() / goals.size
 
@@ -106,34 +112,15 @@ fun RoadmapScreen(
                 }
 
                 items(goals, key = { it.id }) { goal ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = { viewModel.toggleGoalCompletion(goal) }) {
-                            Icon(
-                                imageVector = if (goal.isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle,
-                                contentDescription = null,
-                                tint = if (goal.isCompleted) Primary else Color.White.copy(alpha = 0.5f)
-                            )
+                    GoalCard(
+                        goal = goal,
+                        onToggle = { viewModel.toggleGoalCompletion(goal) },
+                        onDelete = { viewModel.deleteGoal(goal) },
+                        onClick = {
+                            viewModel.selectGoal(goal.id)
+                            showSheet = true
                         }
-                        Text(
-                            text = goal.title,
-                            color = if (goal.isCompleted) Color.White.copy(alpha = 0.5f) else Color.White,
-                            textDecoration = if (goal.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(onClick = { viewModel.deleteGoal(goal) }) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = Color.White.copy(alpha = 0.3f)
-                            )
-                        }
-                    }
+                    )
                 }
 
                 item {
@@ -170,6 +157,183 @@ fun RoadmapScreen(
                     }
                 }
             }
+        }
+
+        if (showSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { 
+                    showSheet = false
+                    viewModel.selectGoal(null)
+                },
+                sheetState = sheetState,
+                containerColor = Color(0xFF1A1A1A),
+                contentColor = Color.White
+            ) {
+                val goal = goals.find { it.id == selectedGoalId }
+                if (goal != null) {
+                    GoalDetailsSheet(
+                        goal = goal,
+                        items = goalItems,
+                        onAddItem = { topic, date -> viewModel.addItem(goal.id, topic, date) },
+                        onToggleItem = { viewModel.toggleItemCompletion(it) },
+                        onDeleteItem = { viewModel.deleteItem(it) }
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun GoalCard(
+    goal: RoadmapEntity,
+    onToggle: () -> Unit,
+    onDelete: () -> Unit,
+    onClick: () -> Unit
+) {
+    GlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onToggle) {
+                Icon(
+                    imageVector = if (goal.isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = null,
+                    tint = if (goal.isCompleted) Primary else Color.White.copy(alpha = 0.5f)
+                )
+            }
+            Text(
+                text = goal.title,
+                color = if (goal.isCompleted) Color.White.copy(alpha = 0.5f) else Color.White,
+                textDecoration = if (goal.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.White.copy(alpha = 0.3f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GoalDetailsSheet(
+    goal: RoadmapEntity,
+    items: List<RoadmapItemEntity>,
+    onAddItem: (String, String) -> Unit,
+    onToggleItem: (RoadmapItemEntity) -> Unit,
+    onDeleteItem: (RoadmapItemEntity) -> Unit
+) {
+    var newTopic by remember { mutableStateOf("") }
+    var newDate by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = goal.title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = Primary
+        )
+        Text(
+            text = "Sub-tasks & Topics",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.6f)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (items.isEmpty()) {
+            Text(
+                "No sub-tasks yet. Break down your goal into smaller topics!",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.4f),
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        } else {
+            items.forEach { item ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { onToggleItem(item) }) {
+                        Icon(
+                            imageVector = if (item.isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                            contentDescription = null,
+                            tint = if (item.isCompleted) Primary else Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = item.topic,
+                            color = if (item.isCompleted) Color.White.copy(alpha = 0.5f) else Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textDecoration = if (item.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                        )
+                        if (item.date.isNotBlank()) {
+                            Text(item.date, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.3f))
+                        }
+                    }
+                    IconButton(onClick = { onDeleteItem(item) }) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("Add Sub-task", style = MaterialTheme.typography.titleSmall, color = Color.White)
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        OutlinedTextField(
+            value = newTopic,
+            onValueChange = { newTopic = it },
+            placeholder = { Text("Topic Name") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = newDate,
+            onValueChange = { newDate = it },
+            placeholder = { Text("Target Date (e.g. 25th Oct)") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                if (newTopic.isNotBlank()) {
+                    onAddItem(newTopic, newDate)
+                    newTopic = ""
+                    newDate = ""
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Primary),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Add Sub-task")
         }
     }
 }

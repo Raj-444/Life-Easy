@@ -60,7 +60,8 @@ class EventViewModel @Inject constructor(
         type: String,
         description: String,
         startTime: Long,
-        reminderMinutes: Int
+        reminderMinutes: Int,
+        reminderType: String
     ) {
         viewModelScope.launch {
             val event = Event(
@@ -71,6 +72,7 @@ class EventViewModel @Inject constructor(
                 description = description,
                 startTime = startTime,
                 reminderMinutes = reminderMinutes,
+                reminderType = reminderType,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )

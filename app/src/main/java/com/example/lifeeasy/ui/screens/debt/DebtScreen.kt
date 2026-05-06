@@ -40,7 +40,9 @@ import java.util.*
 fun DebtScreen(viewModel: DebtViewModel, onNavigateBack: () -> Unit) {
     val persons by viewModel.persons.collectAsState()
     val allTransactions by viewModel.allTransactions.collectAsState()
+    val standaloneExpenses by viewModel.standaloneExpenses.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+    var selectedTab by remember { mutableIntStateOf(0) }
     val spacing = MaterialTheme.spacing
 
     // Summary calculation
@@ -57,12 +59,18 @@ fun DebtScreen(viewModel: DebtViewModel, onNavigateBack: () -> Unit) {
             },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { viewModel.showAddPersonDialog() },
+                    onClick = { 
+                        if (selectedTab == 0) viewModel.showAddPersonDialog() 
+                        else viewModel.showAddExpenseDialog() 
+                    },
                     containerColor = Primary,
                     contentColor = Color.White,
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Default.PersonAdd, contentDescription = "Add Person")
+                    Icon(
+                        imageVector = if (selectedTab == 0) Icons.Default.PersonAdd else Icons.Default.Add,
+                        contentDescription = "Add"
+                    )
                 }
             },
             containerColor = Color.Transparent
@@ -75,30 +83,38 @@ fun DebtScreen(viewModel: DebtViewModel, onNavigateBack: () -> Unit) {
                 // 1. Summary Pie Chart Section
                 SummaryChartSection(totalLent, totalBorrowed)
 
-                // 2. Persons List
-                if (persons.isEmpty()) {
-                    EmptyDebtState()
+                // 1.5 Tab Switcher
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = Color.Transparent,
+                    contentColor = Primary,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.Indicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            color = Primary
+                        )
+                    },
+                    divider = {}
+                ) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text("Contacts", color = if (selectedTab == 0) Primary else Color.White.copy(alpha = 0.6f)) }
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text("Expenses", color = if (selectedTab == 1) Primary else Color.White.copy(alpha = 0.6f)) }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(spacing.small))
+
+                // 2. Main Content
+                if (selectedTab == 0) {
+                    ContactsList(persons, allTransactions, viewModel, spacing)
                 } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = spacing.medium),
-                        verticalArrangement = Arrangement.spacedBy(spacing.small),
-                        contentPadding = PaddingValues(bottom = 100.dp, top = spacing.small)
-                    ) {
-                        items(persons, key = { it.id }) { person ->
-                            val personTransactions = allTransactions.filter { it.personId == person.id }
-                            val balance = personTransactions.sumOf { 
-                                if (it.type == "given") it.amount else -it.amount 
-                            }
-                            PersonDebtCard(
-                                person = person,
-                                balance = balance,
-                                onClick = { viewModel.selectPerson(person.id) },
-                                onDelete = { viewModel.deletePerson(person) }
-                            )
-                        }
-                    }
+                    StandaloneExpensesList(standaloneExpenses, viewModel, spacing)
                 }
             }
         }
@@ -108,6 +124,13 @@ fun DebtScreen(viewModel: DebtViewModel, onNavigateBack: () -> Unit) {
             AddPersonDialog(
                 onDismiss = { viewModel.dismissAddPersonDialog() },
                 onAdd = { name -> viewModel.addPerson(name) }
+            )
+        }
+
+        if (uiState.showAddExpenseDialog) {
+            AddStandaloneExpenseDialog(
+                onDismiss = { viewModel.dismissAddExpenseDialog() },
+                onAdd = { title, amount, isBorrow -> viewModel.addStandaloneExpense(title, amount, isBorrow) }
             )
         }
 
@@ -364,13 +387,175 @@ fun TransactionItem(tx: DebtTransaction, dateFormat: SimpleDateFormat, onDelete:
 }
 
 @Composable
-fun EmptyDebtState() {
+fun ContactsList(
+    persons: List<Person>,
+    allTransactions: List<DebtTransaction>,
+    viewModel: DebtViewModel,
+    spacing: com.example.lifeeasy.ui.theme.Spacing
+) {
+    if (persons.isEmpty()) {
+        EmptyDebtState("Add a person to track debts")
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(spacing.small),
+            contentPadding = PaddingValues(bottom = 100.dp, top = spacing.small)
+        ) {
+            items(persons, key = { it.id }) { person ->
+                val personTransactions = allTransactions.filter { it.personId == person.id }
+                val balance = personTransactions.sumOf { 
+                    if (it.type == "given") it.amount else -it.amount 
+                }
+                PersonDebtCard(
+                    person = person,
+                    balance = balance,
+                    onClick = { viewModel.selectPerson(person.id) },
+                    onDelete = { viewModel.deletePerson(person) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StandaloneExpensesList(
+    expenses: List<com.example.lifeeasy.data.local.entity.ExpenseEntity>,
+    viewModel: DebtViewModel,
+    spacing: com.example.lifeeasy.ui.theme.Spacing
+) {
+    if (expenses.isEmpty()) {
+        EmptyDebtState("Add a quick expense without a contact")
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(spacing.small),
+            contentPadding = PaddingValues(bottom = 100.dp, top = spacing.small)
+        ) {
+            items(expenses, key = { it.id }) { expense ->
+                StandaloneExpenseCard(
+                    expense = expense,
+                    onDelete = { viewModel.deleteStandaloneExpense(expense) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StandaloneExpenseCard(
+    expense: com.example.lifeeasy.data.local.entity.ExpenseEntity,
+    onDelete: () -> Unit
+) {
+    val color = if (expense.isBorrow) Color(0xFFF44336) else Color(0xFF4CAF50)
+    GlassCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (expense.isBorrow) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(expense.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(
+                    if (expense.isBorrow) "Borrowed" else "Lent",
+                    color = color.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            
+            Text(
+                "৳${String.format("%,.0f", expense.amount)}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = color
+            )
+            
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.DeleteOutline, contentDescription = "Delete", tint = Color.White.copy(alpha = 0.2f))
+            }
+        }
+    }
+}
+
+@Composable
+fun AddStandaloneExpenseDialog(onDismiss: () -> Unit, onAdd: (String, Double, Boolean) -> Unit) {
+    var title by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    var isBorrow by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Quick Expense") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    FilterChip(
+                        selected = !isBorrow,
+                        onClick = { isBorrow = false },
+                        label = { Text("Lent") },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF4CAF50).copy(alpha = 0.2f))
+                    )
+                    FilterChip(
+                        selected = isBorrow,
+                        onClick = { isBorrow = true },
+                        label = { Text("Borrowed") },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFF44336).copy(alpha = 0.2f))
+                    )
+                }
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title (e.g. Snacks)") },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Amount (৳)") },
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onAdd(title, amount.toDoubleOrNull() ?: 0.0, isBorrow) },
+                enabled = title.isNotBlank() && (amount.toDoubleOrNull() ?: 0.0) > 0
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+        shape = RoundedCornerShape(28.dp)
+    )
+}
+
+@Composable
+fun EmptyDebtState(subtitle: String = "Add a person to track debts") {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("💸", style = androidx.compose.ui.text.TextStyle(fontSize = 60.sp))
             Spacer(modifier = Modifier.height(16.dp))
             Text("Your ledger is clean", style = MaterialTheme.typography.titleLarge, color = Color.White)
-            Text("Add a person to track debts", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.6f))
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.6f))
         }
     }
 }

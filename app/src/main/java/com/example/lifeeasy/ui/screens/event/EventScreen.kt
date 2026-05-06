@@ -90,8 +90,8 @@ fun EventScreen(viewModel: EventViewModel, onNavigateBack: () -> Unit) {
                 AddEventSheet(
                     subjects = subjects,
                     onDismiss = { viewModel.dismissAddEventSheet() },
-                    onSave = { title, subjectId, type, desc, time, reminder ->
-                        viewModel.saveEvent(title, subjectId, type, desc, time, reminder)
+                    onSave = { title, subjectId, type, desc, time, reminder, reminderType ->
+                        viewModel.saveEvent(title, subjectId, type, desc, time, reminder, reminderType)
                     }
                 )
             }
@@ -245,7 +245,7 @@ fun TimelineView(
 fun AddEventSheet(
     subjects: List<com.example.lifeeasy.domain.model.Subject>,
     onDismiss: () -> Unit,
-    onSave: (String, String?, String, String, Long, Int) -> Unit
+    onSave: (String, String?, String, String, Long, Int, String) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var title by remember { mutableStateOf("") }
@@ -354,9 +354,33 @@ fun AddEventSheet(
                 }
             }
 
+            // Reminder Type
+            var reminderType by remember { mutableStateOf("notification") }
+            Text("Alert Style", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = reminderType == "notification",
+                    onClick = { reminderType = "notification" },
+                    label = { Text("Notification") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary,
+                        selectedLabelColor = Color.White
+                    )
+                )
+                FilterChip(
+                    selected = reminderType == "alarm",
+                    onClick = { reminderType = "alarm" },
+                    label = { Text("Alarm (Loud)") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary,
+                        selectedLabelColor = Color.White
+                    )
+                )
+            }
+
             Button(
                 onClick = {
-                    onSave(title, selectedSubjectId, eventType, description, selectedCalendar.timeInMillis, selectedReminder)
+                    onSave(title, selectedSubjectId, eventType, description, selectedCalendar.timeInMillis, selectedReminder, reminderType)
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),

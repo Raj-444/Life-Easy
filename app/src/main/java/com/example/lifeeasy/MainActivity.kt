@@ -140,7 +140,9 @@ fun AppNavGraph(
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToClock = { navController.navigate(Screen.Clock.route) },
-                onNavigateToRoadmap = { navController.navigate(Screen.Roadmap.route) }
+                onNavigateToRoadmap = { navController.navigate(Screen.Roadmap.route) },
+                onNavigateToGpa = { navController.navigate(Screen.Gpa.route) },
+                onNavigateToRoutine = { navController.navigate(Screen.Routine.route) }
             )
         }
         composable(Screen.TaskList.route) {
@@ -240,6 +242,18 @@ fun AppNavGraph(
         }
         composable(Screen.Roadmap.route) {
             com.example.lifeeasy.ui.screens.roadmap.RoadmapScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Gpa.route) {
+            com.example.lifeeasy.ui.screens.gpa.GpaCalculatorScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Routine.route) {
+            val routineViewModel: com.example.lifeeasy.ui.screens.routine.RoutineViewModel = hiltViewModel()
+            com.example.lifeeasy.ui.screens.routine.RoutineScreen(
+                viewModel = routineViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -39,6 +39,7 @@ object ReminderScheduler {
             putExtra(ReminderReceiver.EXTRA_EVENT_ID, event.id)
             putExtra(ReminderReceiver.EXTRA_EVENT_TITLE, "Upcoming ${event.eventType.uppercase()}: ${event.title}")
             putExtra(ReminderReceiver.EXTRA_EVENT_DESCRIPTION, event.description)
+            putExtra(ReminderReceiver.EXTRA_REMINDER_TYPE, event.reminderType)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context, event.id.hashCode(), intent,
