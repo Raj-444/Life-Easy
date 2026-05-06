@@ -1,0 +1,36 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background circle with gradient feel -->
+    <path
+        android:pathData="M54,54m-42,0a42,42 0,1 1,84 0a42,42 0,1 1,-84 0"
+        android:fillColor="#6C63FF" />
+
+    <!-- Inner accent ring -->
+    <path
+        android:pathData="M54,54m-34,0a34,34 0,1 1,68 0a34,34 0,1 1,-68 0"
+        android:fillColor="#7B73FF" />
+
+    <!-- Inner circle -->
+    <path
+        android:pathData="M54,54m-28,0a28,28 0,1 1,56 0a28,28 0,1 1,-56 0"
+        android:fillColor="#8A83FF" />
+
+    <!-- L letter -->
+    <path
+        android:pathData="M40,36 L40,68 L56,68 L56,63 L45,63 L45,36 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- E letter -->
+    <path
+        android:pathData="M59,36 L59,68 L75,68 L75,63 L64,63 L64,54.5 L73,54.5 L73,49.5 L64,49.5 L64,41 L75,41 L75,36 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Small accent dot -->
+    <path
+        android:pathData="M54,78m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
+        android:fillColor="#FF6584" />
+</vector>
